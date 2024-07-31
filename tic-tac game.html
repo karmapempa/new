@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="player-inputs">
+            <input type="text" id="player1" placeholder="Player 1 Name">
+            <input type="text" id="player2" placeholder="Player 2 Name">
+            <button id="start" class="start">Start Game</button>
+        </div>
+        <div id="currentPlayer" class="current-player"></div>
+        <div id="board" class="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+        <div id="result" class="result"></div>
+        <button id="restart" class="restart">Restart Game</button>
+    </div>
+<style>
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #000;
+    margin: 0;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.player-inputs {
+    margin-bottom: 20px;
+}
+
+.player-inputs input {
+    margin: 0 10px;
+    padding: 10px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.player-inputs .start {
+    margin-left: 10px;
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    border-radius: 4px;
+}
+
+.player-inputs .start:hover {
+    background-color: #45a049;
+}
+
+.current-player {
+    margin-bottom: 20px;
+    font-size: 1.2em;
+    display: none;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 5px;
+    perspective: 1000px;
+    transform: rotateX(20deg);
+}
+
+.cell {
+    width: 100px;
+    height: 100px;
+    background-color: #111;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.5s, transform 0.5s;
+    border: 2px solid transparent;
+}
+
+.cell.x {
+    color: red;
+    text-shadow: 0 0 10px red;
+}
+
+.cell.o {
+    color: blue;
+    text-shadow: 0 0 10px blue;
+}
+
+.result {
+    margin-top: 20px;
+    font-size: 1.5em;
+    display: none;
+    animation: fadeIn 1s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.restart {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: none;
+    border-radius: 4px;
+}
+
+.restart:hover {
+    background-color: #0b7dda;
+}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const board = document.getElementById('board');
+    const cells = document.querySelectorAll('.cell');
+    const result = document.getElementById('result');
+    const restartButton = document.getElementById('restart');
+    const startButton = document.getElementById('start');
+    const player1Input = document.getElementById('player1');
+    const player2Input = document.getElementById('player2');
+    const currentPlayerDisplay = document.getElementById('currentPlayer');
+
+    let player1 = 'Player 1';
+    let player2 = 'Player 2';
+    let currentPlayer = 'x';
+    let gameActive = false;
+
+    const winningConditions = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+    ];
+
+    function handleCellClick(event) {
+        const cell = event.target;
+        const cellIndex = cell.getAttribute('data-index');
+
+        if (cell.textContent !== '' || !gameActive) {
+            return;
+        }
+
+        cell.textContent = currentPlayer;
+        cell.classList.add(currentPlayer);
+        checkResult();
+        currentPlayer = currentPlayer === 'x' ? 'o' : 'x';
+        updateCurrentPlayerDisplay();
+    }
+
+    function checkResult() {
+        let roundWon = false;
+
+        for (let i = 0; i < winningConditions.length; i++) {
+            const [a, b, c] = winningConditions[i];
+            if (
+                cells[a].textContent &&
+                cells[a].textContent === cells[b].textContent &&
+                cells[a].textContent === cells[c].textContent
+            ) {
+                roundWon = true;
+                break;
+            }
+        }
+
+        if (roundWon) {
+            displayResult(`${currentPlayer === 'x' ? player1 : player2} wins!`);
+            gameActive = false;
+            return;
+        }
+
+        const roundDraw = [...cells].every(cell => cell.textContent !== '');
+        if (roundDraw) {
+            displayResult('Draw!');
+            gameActive = false;
+        }
+    }
+
+    function displayResult(message) {
+        result.textContent = message;
+        result.style.display = 'block';
+        result.classList.add('animated');
+    }
+
+    function restartGame() {
+        cells.forEach(cell => {
+            cell.textContent = '';
+            cell.classList.remove('x', 'o');
+        });
+        result.textContent = '';
+        result.style.display = 'none';
+        gameActive = true;
+        currentPlayer = 'x';
+        updateCurrentPlayerDisplay();
+    }
+
+    function updateCurrentPlayerDisplay() {
+        currentPlayerDisplay.textContent = `${currentPlayer === 'x' ? player1 : player2}'s turn (${currentPlayer.toUpperCase()})`;
+    }
+
+    function setPlayerNames() {
+        player1 = player1Input.value || 'Player 1';
+        player2 = player2Input.value || 'Player 2';
+        updateCurrentPlayerDisplay();
+    }
+
+    function startGame() {
+        setPlayerNames();
+        gameActive = true;
+        currentPlayerDisplay.style.display = 'block';
+        restartButton.style.display = 'block';
+        startButton.style.display = 'none';
+        player1Input.disabled = true;
+        player2Input.disabled = true;
+    }
+
+    startButton.addEventListener('click', startGame);
+    player1Input.addEventListener('input', setPlayerNames);
+    player2Input.addEventListener('input', setPlayerNames);
+
+    cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+    restartButton.addEventListener('click', restartGame);
+
+    // Initialize the display
+    updateCurrentPlayerDisplay();
+});
+</script>
+</body>
+</html>
